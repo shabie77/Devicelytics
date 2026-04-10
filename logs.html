@@ -9,39 +9,95 @@
 <body>
   <main class="shell">
     <section class="hero">
-      <h1>QA Log Viewer</h1>
-      <p class="lead">
-        Internal-only prototype log view for checking parse status, latency, raw model output, and saved result structure during private testing.
-      </p>
-      <div class="actions">
-        <a class="link-button secondary" href="/index.html">Back to analysis</a>
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">QA review</p>
+          <h1>Structured appraisal logs</h1>
+          <p class="lead">Review verdict quality, risk dimensions, confidence, parse state, and raw output from recent runs.</p>
+        </div>
+        <div class="panel-links">
+          <a class="link-button secondary" href="/index.html">Back to analysis</a>
+          <a class="link-button secondary" href="/qa.html">Open fixture lab</a>
+        </div>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="actions">
-        <button id="refresh" class="primary" type="button">Refresh Logs</button>
+    <section class="scoreboard">
+      <p class="eyebrow">Recent snapshot</p>
+      <h2>Run health</h2>
+      <div class="scoreboard-grid">
+        <div>
+          <p class="mini-label">Total runs</p>
+          <p id="metric-total" class="metric-value">0</p>
+        </div>
+        <div>
+          <p class="mini-label">High risk</p>
+          <p id="metric-high" class="metric-value">0</p>
+        </div>
+        <div>
+          <p class="mini-label">Unavailable</p>
+          <p id="metric-unavailable" class="metric-value">0</p>
+        </div>
+        <div>
+          <p class="mini-label">Avg confidence</p>
+          <p id="metric-confidence" class="metric-value">0%</p>
+        </div>
       </div>
-      <div id="status" class="status"></div>
-      <div class="card">
-        <table>
-          <thead>
-            <tr>
-              <th>Created</th>
-              <th>Device</th>
-              <th>Parse</th>
-              <th>Latency</th>
-              <th>Cost</th>
-              <th>Result</th>
-            </tr>
-          </thead>
-          <tbody id="log-table-body"></tbody>
-        </table>
-      </div>
-      <div class="card">
-        <h2>Selected raw response</h2>
-        <pre id="raw-output">Select a row after loading logs.</pre>
-      </div>
+    </section>
+
+    <section class="log-layout">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Table</p>
+            <h2>Recent runs</h2>
+          </div>
+          <div class="actions">
+            <button id="refresh" class="primary" type="button">Refresh logs</button>
+          </div>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="log-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Created</th>
+                <th>Device</th>
+                <th>Verdict</th>
+                <th>Fraud</th>
+                <th>Condition</th>
+                <th>Confidence</th>
+                <th>Parse</th>
+              </tr>
+            </thead>
+            <tbody id="log-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="log-detail">
+        <p class="eyebrow">Inspector</p>
+        <h2 id="detail-title">Select a run</h2>
+        <div class="detail-stack">
+          <div class="detail-block">
+            <p class="mini-label">Summary</p>
+            <p id="detail-summary" class="muted">Click any row to inspect the full appraisal.</p>
+          </div>
+
+          <div class="detail-block">
+            <p class="mini-label">Buyer guidance</p>
+            <p id="detail-action">-</p>
+            <ul id="detail-missing" class="stack-list compact"></ul>
+          </div>
+
+          <div class="detail-block">
+            <p class="mini-label">Raw model response</p>
+            <pre id="raw-output" class="raw-box">Select a row after loading logs.</pre>
+          </div>
+        </div>
+      </aside>
     </section>
   </main>
 

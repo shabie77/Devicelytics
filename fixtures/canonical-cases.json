@@ -1,56 +1,99 @@
 [
   {
-    "name": "Low-price good deal",
+    "name": "Clean flagship with enough proof",
+    "expectedVerdict": ["Worth It", "Average Deal"],
+    "expectedRiskLevel": ["low", "medium"],
+    "expectedAction": ["Buy If Final Checks Pass", "Negotiate"],
     "input": {
       "deviceName": "iPhone 13 128GB",
       "askingPrice": 26000,
-      "description": "Normal usage. No display issue. Camera ok. Box available.",
+      "description": "Normal usage. No display issue. Camera ok. Box available. Seller says face ID works and battery backup is decent.",
       "batteryHealth": "87%",
       "imeiStatus": "clean",
       "languageHint": "english"
     }
   },
   {
-    "name": "Overpriced weak device",
+    "name": "Repaired phone with weak battery",
+    "expectedVerdict": ["Not Worth It", "Average Deal"],
+    "expectedRiskLevel": ["medium", "high"],
+    "expectedAction": ["Pass Unless Price Drops Hard", "Negotiate"],
     "input": {
       "deviceName": "Redmi Note 10",
       "askingPrice": 17000,
-      "description": "Back panel changed. Battery drains fast. No bill.",
-      "batteryHealth": "unknown",
+      "description": "Back panel changed. Battery drains fast. No bill. Display was replaced once.",
+      "batteryHealth": "76%",
       "imeiStatus": "clean",
       "languageHint": "english"
     }
   },
   {
-    "name": "Risky listing with missing signals",
+    "name": "Risky listing with missing proof",
+    "expectedVerdict": ["Need More Details", "High Risk"],
+    "expectedRiskLevel": ["medium", "high"],
+    "expectedAction": ["Verify Before Offer", "Walk Away"],
     "input": {
       "deviceName": "Samsung Galaxy S21 FE",
       "askingPrice": 22000,
-      "description": "Condition good. Serious buyers only.",
+      "description": "Condition good. Serious buyers only. Final price.",
       "batteryHealth": "",
       "imeiStatus": "",
       "languageHint": "mixed"
     }
   },
   {
-    "name": "Manglish listing",
+    "name": "Manglish listing with decent signals",
+    "expectedVerdict": ["Worth It", "Average Deal"],
+    "expectedRiskLevel": ["low", "medium"],
+    "expectedAction": ["Buy If Final Checks Pass", "Negotiate"],
     "input": {
       "deviceName": "OnePlus 11R",
       "askingPrice": 25000,
-      "description": "Phone nalla condition aanu. Gaming ok. Battery backup decent aanu.",
+      "description": "Phone nalla condition aanu. Gaming ok. Battery backup decent aanu. Charger included.",
       "batteryHealth": "good",
       "imeiStatus": "clean",
       "languageHint": "manglish"
     }
   },
   {
-    "name": "Blacklisted IMEI",
+    "name": "Blacklisted IMEI stop signal",
+    "expectedVerdict": ["High Risk"],
+    "expectedRiskLevel": ["high"],
+    "expectedAction": ["Walk Away"],
     "input": {
       "deviceName": "iPhone 12 mini",
       "askingPrice": 21000,
       "description": "Looks clean but seller says IMEI issue can be fixed later.",
       "batteryHealth": "82%",
       "imeiStatus": "blacklisted",
+      "languageHint": "english"
+    }
+  },
+  {
+    "name": "Too-cheap future flagship",
+    "expectedVerdict": ["High Risk"],
+    "expectedRiskLevel": ["high"],
+    "expectedAction": ["Walk Away"],
+    "input": {
+      "deviceName": "iPhone 16 Pro 256GB",
+      "askingPrice": 60000,
+      "description": "Brand new sealed. Urgent sale. No bill but trust me.",
+      "batteryHealth": "",
+      "imeiStatus": "not checked",
+      "languageHint": "english"
+    }
+  },
+  {
+    "name": "Damaged device with cosmetic issues",
+    "expectedVerdict": ["Not Worth It", "Need More Details"],
+    "expectedRiskLevel": ["medium", "high"],
+    "expectedAction": ["Pass Unless Price Drops Hard", "Verify Before Offer"],
+    "input": {
+      "deviceName": "Samsung Galaxy S22",
+      "askingPrice": 24000,
+      "description": "Green line issue sometimes. Frame dents. Display replaced locally.",
+      "batteryHealth": "79%",
+      "imeiStatus": "clean",
       "languageHint": "english"
     }
   }

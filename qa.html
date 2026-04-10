@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeviceGuard Fixture Lab</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Fixture lab</p>
+          <h1>Regression scenarios</h1>
+          <p class="lead">Run the trust engine against canonical cases and compare actual verdicts, risk levels, and actions to expected ranges.</p>
+        </div>
+        <div class="panel-links">
+          <a class="link-button secondary" href="/index.html">Back to analysis</a>
+          <a class="link-button secondary" href="/logs.html">Open QA logs</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="qa-layout">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Runner</p>
+            <h2>Canonical cases</h2>
+          </div>
+          <div class="actions">
+            <button id="run-fixtures" class="primary" type="button">Run all fixtures</button>
+          </div>
+        </div>
+
+        <div id="qa-status" class="status"></div>
+
+        <div class="fixture-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fixture</th>
+                <th>Expected verdict</th>
+                <th>Actual verdict</th>
+                <th>Risk</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="fixture-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="scoreboard">
+        <p class="eyebrow">QA summary</p>
+        <h2>Pass / fail snapshot</h2>
+        <div class="qa-summary-grid">
+          <div>
+            <p class="mini-label">Fixtures</p>
+            <p id="fixture-total" class="metric-value">0</p>
+          </div>
+          <div>
+            <p class="mini-label">Pass</p>
+            <p id="fixture-pass" class="metric-value">0</p>
+          </div>
+          <div>
+            <p class="mini-label">Fail</p>
+            <p id="fixture-fail" class="metric-value">0</p>
+          </div>
+        </div>
+
+        <div class="detail-block" style="margin-top: 18px;">
+          <p class="mini-label">Selected result</p>
+          <p id="fixture-detail-title">No fixture selected.</p>
+          <p id="fixture-detail-summary" class="muted">Run the suite and click a row to inspect the result.</p>
+          <pre id="fixture-raw" class="raw-box">No result yet.</pre>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="/qa.js"></script>
+</body>
+</html>

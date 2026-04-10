@@ -3,117 +3,235 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DeviceGuard Prototype</title>
+  <title>DeviceGuard Pro</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
-  <div class="shell">
-    <header class="hero">
-      <h1>DeviceGuard <span style="font-weight: 300; font-size: 0.7em; color: var(--accent);">PRO</span></h1>
-      <p class="lead">AI-powered technical appraisal for used devices. Protect your budget with 'Digital Bodyguard' reasoning.</p>
-    </header>
+<body class="app-shell">
+  <main class="shell">
+    <section class="hero hero-grid">
+      <div>
+        <p class="eyebrow">DeviceGuard Pro</p>
+        <h1>Buyer-first used-device appraisal</h1>
+        <p class="lead">
+          Turn messy seller claims into a structured decision: fraud risk, condition risk, price fairness,
+          missing evidence, and the next move to make before you pay.
+        </p>
+        <div class="pill-row">
+          <span class="pill">Trust engine first</span>
+          <span class="pill">Structured verdicts</span>
+          <span class="pill">QA review built in</span>
+        </div>
+      </div>
 
-    <div class="grid two">
-      <div class="panel">
-        <h2>Capture Reality</h2>
-        <form id="analysis-form">
+      <aside class="hero-callout">
+        <p class="callout-label">How this helps</p>
+        <ul class="stack-list compact">
+          <li>Flags scam patterns and weak evidence early.</li>
+          <li>Separates fraud risk from condition risk.</li>
+          <li>Tells you when to buy, negotiate, verify, or walk away.</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="workspace-grid">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Input</p>
+            <h2>Capture the listing reality</h2>
+          </div>
+          <div class="panel-links">
+            <a class="link-button secondary" href="/logs.html">QA Logs</a>
+            <a class="link-button secondary" href="/qa.html">Fixture Lab</a>
+          </div>
+        </div>
+
+        <form id="analysis-form" class="form-grid">
           <div class="field">
-            <label for="device-name">Brand / Model</label>
-            <input type="text" id="device-name" placeholder="e.g. iPhone 13 128GB" required>
+            <label for="device-name">Brand / model</label>
+            <input id="device-name" type="text" placeholder="e.g. iPhone 13 128GB" required>
           </div>
 
           <div class="field">
-            <label for="asking-price">Asking Price (INR)</label>
-            <input type="number" id="asking-price" placeholder="e.g. 24000" required>
+            <label for="asking-price">Asking price (INR)</label>
+            <input id="asking-price" type="number" min="1" placeholder="e.g. 24000" required>
+          </div>
+
+          <div class="field field-full">
+            <label for="description">Seller description</label>
+            <textarea id="description" placeholder="Paste the seller's claims, condition notes, repair history, accessories, and any urgency language." required></textarea>
           </div>
 
           <div class="field">
-            <label for="description">Seller Description</label>
-            <textarea id="description" placeholder="Paste the listing description here... Mention condition, battery, flaws, or included accessories." required></textarea>
+            <label for="battery-health">Battery health</label>
+            <input id="battery-health" type="text" placeholder="e.g. 88% or unknown">
           </div>
 
           <div class="field">
-            <label for="battery-health">Battery Health (optional)</label>
-            <input type="text" id="battery-health" placeholder="e.g. 88% or 'Great'">
-          </div>
-
-          <div class="field">
-            <label for="imei-status">IMEI Status (optional)</label>
+            <label for="imei-status">IMEI status</label>
             <select id="imei-status">
-              <option value="">Choose status...</option>
-              <option value="Clean">Clean</option>
-              <option value="Not checked">Not checked</option>
-              <option value="Blacklisted">Blacklisted</option>
+              <option value="">Not checked</option>
+              <option value="clean">Clean</option>
+              <option value="not checked">Not checked</option>
+              <option value="missing">IMEI unavailable</option>
+              <option value="unverifiable">Unverifiable</option>
+              <option value="blacklisted">Blacklisted</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="language-hint">Language Hint (optional)</label>
+            <label for="language-hint">Language hint</label>
             <select id="language-hint">
-              <option value="Auto detect">Auto detect</option>
-              <option value="English">English</option>
-              <option value="Hindi/Hinglish">Hindi/Hinglish</option>
+              <option value="">Auto detect</option>
+              <option value="english">English</option>
+              <option value="hindi">Hindi</option>
+              <option value="hinglish">Hinglish</option>
+              <option value="malayalam">Malayalam</option>
+              <option value="manglish">Manglish</option>
+              <option value="mixed">Mixed</option>
             </select>
           </div>
 
           <div class="field">
-            <label>Device Photos (Max 3)</label>
-            <input type="file" id="image-upload" multiple accept="image/*" class="secondary">
-            <p class="helper">Clear shots of the screen and sides help the AI detect defects.</p>
+            <label for="image-upload">Photos (optional, max 3)</label>
+            <input id="image-upload" type="file" multiple accept="image/png,image/jpeg,image/webp">
+            <p class="helper">Large photos are compressed client-side. Server validation still checks MIME type and payload size.</p>
           </div>
 
-          <div class="actions">
-            <button type="submit" id="submit-btn" class="primary">Analyze Device</button>
-            <button type="reset" class="secondary">Clear</button>
+          <div class="actions field-full">
+            <button type="submit" id="submit-btn" class="primary">Run appraisal</button>
+            <button type="reset" id="reset-btn" class="secondary">Clear form</button>
           </div>
-          
-          <div id="status" class="status"></div>
+
+          <div id="status" class="status field-full"></div>
         </form>
-      </div>
+      </section>
 
-      <div class="panel">
-        <h2>Appraisal Result</h2>
-        <div id="result-wrap" class="hidden">
-          <div id="result-main" class="result-card">
-            <h3 id="verdict-text">---</h3>
-            <div id="risk-pill" class="risk-label">---</div>
-            <p id="reason-text" class="reason"></p>
-            
-            <div id="missing-wrap" class="hidden">
-              <label>Missing from listing:</label>
-              <ul id="missing-list" class="next-steps-list"></ul>
-            </div>
-            
-            <div style="margin-top: 20px;">
-              <label>What to do next:</label>
-              <p id="action-text"></p>
-            </div>
-
-            <div id="message-wrap" class="hidden">
-              <label>Suggested message to seller:</label>
-              <pre id="suggested-message" style="margin-top: 8px;"></pre>
-            </div>
-
-            <div class="metadata-row">
-              <div>
-                <label>Latency</label>
-                <div class="status info" id="latency-val">-</div>
-              </div>
-              <div>
-                <label>Estimated Cost</label>
-                <div class="status info" id="cost-val">-</div>
-              </div>
-            </div>
+      <section class="panel result-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Output</p>
+            <h2>Appraisal report</h2>
           </div>
         </div>
-        
-        <div id="placeholder-text" class="lead" style="margin-top: 20px;">
-          Fill out the form to start your Digital Bodyguard analysis.
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <script src="app.js"></script>
+        <div id="placeholder-text" class="empty-state">
+          <h3>Nothing analyzed yet</h3>
+          <p>Run an appraisal to see the decision, supporting evidence, and the exact proof you should ask from the seller.</p>
+        </div>
+
+        <div id="result-wrap" class="hidden">
+          <section class="decision-card">
+            <div class="decision-topline">
+              <div>
+                <p class="decision-label">Overall verdict</p>
+                <h3 id="verdict-text">Analysis result</h3>
+                <p id="summary-text" class="muted">Waiting for structured output.</p>
+              </div>
+              <div class="decision-badges">
+                <span id="recommended-action" class="action-chip">Verify</span>
+                <span id="risk-pill" class="risk-label">Medium</span>
+              </div>
+            </div>
+
+            <div class="score-grid">
+              <article class="score-card">
+                <p class="score-label">Risk score</p>
+                <p id="risk-score" class="score-value">0 / 100</p>
+              </article>
+              <article class="score-card">
+                <p class="score-label">Confidence</p>
+                <p id="confidence-score" class="score-value">0%</p>
+              </article>
+              <article class="score-card">
+                <p class="score-label">Price check</p>
+                <p id="price-fairness" class="score-value">Unknown</p>
+              </article>
+            </div>
+
+            <div class="dimension-grid">
+              <article class="mini-card">
+                <p class="mini-label">Fraud risk</p>
+                <p id="fraud-risk">-</p>
+              </article>
+              <article class="mini-card">
+                <p class="mini-label">Condition risk</p>
+                <p id="condition-risk">-</p>
+              </article>
+              <article class="mini-card">
+                <p class="mini-label">Analysis status</p>
+                <p id="analysis-status">-</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <div class="detail-card detail-card-wide">
+              <h3>Why I think this</h3>
+              <p id="reason-text" class="reason"></p>
+              <ul id="why-list" class="stack-list"></ul>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <div class="detail-card">
+              <h3>What is missing</h3>
+              <ul id="missing-list" class="stack-list"></ul>
+              <p id="missing-empty" class="muted hidden">The listing covered the core proof points.</p>
+            </div>
+
+            <div class="detail-card">
+              <h3>What to verify before paying</h3>
+              <ul id="verify-list" class="stack-list"></ul>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <div class="detail-card">
+              <h3>Seller questions to ask</h3>
+              <ul id="seller-questions" class="stack-list"></ul>
+            </div>
+
+            <div class="detail-card">
+              <h3>Suggested message</h3>
+              <pre id="suggested-message" class="message-box"></pre>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <div class="detail-card">
+              <h3>Run metadata</h3>
+              <div class="meta-grid">
+                <div>
+                  <p class="mini-label">QA status</p>
+                  <p id="parse-status">-</p>
+                </div>
+                <div>
+                  <p class="mini-label">Latency</p>
+                  <p id="latency-val">-</p>
+                </div>
+                <div>
+                  <p class="mini-label">Estimated cost</p>
+                  <p id="cost-val">-</p>
+                </div>
+                <div>
+                  <p class="mini-label">Log save</p>
+                  <p id="log-status">-</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <details class="detail-card qa-toggle">
+            <summary>QA raw response</summary>
+            <p id="failure-reason" class="muted hidden"></p>
+            <pre id="raw-response" class="raw-box">No raw response yet.</pre>
+          </details>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
 </body>
 </html>

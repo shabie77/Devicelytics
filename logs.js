@@ -14,6 +14,53 @@ function createCell(content) {
   return td;
 }
 
+function formatValue(value) {
+  if (value === null || value === undefined || value === "") return "-";
+  return String(value).replace(/[_-]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function renderMetrics(rows) {
+  const total = rows.length;
+  const highRisk = rows.filter((row) => row.parsed_result?.riskLevel === "high").length;
+  const unavailable = rows.filter((row) => row.parsed_result?.analysisStatus === "unavailable").length;
+  const confidenceValues = rows
+    .map((row) => Number(row.parsed_result?.confidence))
+    .filter((value) => Number.isFinite(value));
+  const avgConfidence = confidenceValues.length
+    ? Math.round(confidenceValues.reduce((sum, value) => sum + value, 0) / confidenceValues.length)
+    : 0;
+
+  document.getElementById("metric-total").textContent = String(total);
+  document.getElementById("metric-high").textContent = String(highRisk);
+  document.getElementById("metric-unavailable").textContent = String(unavailable);
+  document.getElementById("metric-confidence").textContent = `${avgConfidence}%`;
+}
+
+function renderDetail(row) {
+  const result = row.parsed_result || {};
+  document.getElementById("detail-title").textContent = row.input?.deviceName || "Selected run";
+  document.getElementById("detail-summary").textContent =
+    `${result.verdict || "Unknown verdict"} | Risk ${formatValue(result.riskLevel)} | ` +
+    `Fraud ${formatValue(result.riskDimensions?.fraudRisk)} | ` +
+    `Condition ${formatValue(result.riskDimensions?.conditionRisk)}`;
+  document.getElementById("detail-action").textContent = result.nextAction || "No guidance captured.";
+
+  const missingList = document.getElementById("detail-missing");
+  missingList.innerHTML = "";
+  (result.missingEvidence || []).forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    missingList.appendChild(li);
+  });
+  if (!missingList.childElementCount) {
+    const li = document.createElement("li");
+    li.textContent = "No major missing evidence recorded in this run.";
+    missingList.appendChild(li);
+  }
+
+  rawOutput.textContent = row.raw_model_response || "No raw response stored.";
+}
+
 async function loadLogs() {
   setStatus("Loading logs...");
   tableBody.innerHTML = "";
@@ -22,17 +69,19 @@ async function loadLogs() {
   try {
     let qaToken = sessionStorage.getItem("qaToken");
     if (!qaToken) {
-      qaToken = prompt("Enter QA Password to view logs:");
+      qaToken = prompt("Enter QA password to view logs:");
       if (qaToken) sessionStorage.setItem("qaToken", qaToken);
     }
 
     const response = await fetch("/api/logs", {
-      headers: { "Authorization": qaToken || "" }
+      headers: {
+        Authorization: qaToken || ""
+      }
     });
     const payload = await response.json();
 
     if (response.status === 401) {
-      sessionStorage.removeItem("qaToken"); // clear bad token
+      sessionStorage.removeItem("qaToken");
     }
 
     if (!response.ok) {
@@ -40,6 +89,7 @@ async function loadLogs() {
     }
 
     const rows = payload.logs || [];
+    renderMetrics(rows);
 
     if (!rows.length) {
       setStatus(payload.message || "No logs found yet.", "warn");
@@ -47,21 +97,21 @@ async function loadLogs() {
     }
 
     rows.forEach((row) => {
+      const result = row.parsed_result || {};
       const tr = document.createElement("tr");
-      tr.style.cursor = "pointer";
       tr.appendChild(createCell(row.created_at || "-"));
       tr.appendChild(createCell(row.input?.deviceName || "-"));
+      tr.appendChild(createCell(result.verdict || "-"));
+      tr.appendChild(createCell(formatValue(result.riskDimensions?.fraudRisk)));
+      tr.appendChild(createCell(formatValue(result.riskDimensions?.conditionRisk)));
+      tr.appendChild(createCell(result.confidence !== null && result.confidence !== undefined ? `${result.confidence}%` : "-"));
       tr.appendChild(createCell(row.parse_status || "-"));
-      tr.appendChild(createCell(row.latency_ms ? `${row.latency_ms} ms` : "-"));
-      tr.appendChild(createCell(row.estimated_cost !== null && row.estimated_cost !== undefined ? `$${row.estimated_cost}` : "-"));
-      tr.appendChild(createCell(row.parsed_result?.verdict || "-"));
-      tr.addEventListener("click", () => {
-        rawOutput.textContent = row.raw_model_response || "No raw response stored.";
-      });
+      tr.addEventListener("click", () => renderDetail(row));
       tableBody.appendChild(tr);
     });
 
-    setStatus(`Loaded ${rows.length} logs.`, "good");
+    renderDetail(rows[0]);
+    setStatus(`Loaded ${rows.length} runs.`, "good");
   } catch (error) {
     setStatus(error.message || "Could not load logs.", "bad");
   }

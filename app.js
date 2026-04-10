@@ -2,17 +2,54 @@ const form = document.getElementById("analysis-form");
 const statusNode = document.getElementById("status");
 const resultWrap = document.getElementById("result-wrap");
 const placeholderText = document.getElementById("placeholder-text");
+const submitButton = document.getElementById("submit-btn");
+const resetButton = document.getElementById("reset-btn");
 
 function setStatus(message, tone = "info") {
   statusNode.textContent = message;
   statusNode.className = `status ${tone}`;
 }
 
+function formatTitle(value) {
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function getRiskClass(level) {
-  const norm = (level || "").toLowerCase();
-  if (norm.includes("high")) return "risk-high";
-  if (norm.includes("medium")) return "risk-medium";
-  return "risk-low";
+  const normalized = String(level || "").toLowerCase();
+  if (normalized === "high") return "risk-high";
+  if (normalized === "low") return "risk-low";
+  return "risk-medium";
+}
+
+function getActionClass(action) {
+  const normalized = String(action || "").toLowerCase();
+  if (normalized.includes("walk") || normalized.includes("pass")) return "action-chip bad";
+  if (normalized.includes("buy")) return "action-chip good";
+  return "action-chip warn";
+}
+
+function resetList(node, items, emptyMessageNode) {
+  node.innerHTML = "";
+  const values = Array.isArray(items) ? items.filter(Boolean) : [];
+
+  if (!values.length) {
+    if (emptyMessageNode) {
+      emptyMessageNode.classList.remove("hidden");
+    }
+    return;
+  }
+
+  if (emptyMessageNode) {
+    emptyMessageNode.classList.add("hidden");
+  }
+
+  values.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    node.appendChild(li);
+  });
 }
 
 function readFile(file) {
@@ -38,7 +75,7 @@ async function readFileAsInlinePart(file) {
   if (!validMimes.includes(file.type)) {
     throw new Error(`${file.name} is not a supported format. Please use JPEG, PNG, or WEBP.`);
   }
-  
+
   const dataUrl = await readFile(file);
   const image = await loadImage(dataUrl);
   const maxDimension = 1024;
@@ -48,8 +85,8 @@ async function readFileAsInlinePart(file) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext("2d");
 
+  const context = canvas.getContext("2d");
   if (!context) {
     throw new Error("Image compression is not supported in this browser.");
   }
@@ -59,21 +96,20 @@ async function readFileAsInlinePart(file) {
   const [, base64] = compressed.split(",");
 
   return {
-    name: file.name.replace(/\.[^.]+$/, "") + ".jpg",
+    name: `${file.name.replace(/\.[^.]+$/, "")}.jpg`,
     mimeType: "image/jpeg",
     data: base64 || ""
   };
 }
 
 async function collectImages(files) {
-  if (!files || !files.length) return [];
-  const picked = Array.from(files).slice(0, 3);
+  const picked = Array.from(files || []).slice(0, 3);
   const rawSizeLimit = 10 * 1024 * 1024;
   const encodedPayloadLimit = 3.2 * 1024 * 1024;
 
   for (const file of picked) {
     if (file.size > rawSizeLimit) {
-      throw new Error(`${file.name} is larger than the 10MB limit.`);
+      throw new Error(`${file.name} is larger than the 10MB upload limit.`);
     }
   }
 
@@ -88,51 +124,77 @@ async function collectImages(files) {
 }
 
 function renderResult(payload) {
+  const result = payload.result || {};
+  const riskDimensions = result.riskDimensions || {};
+  const analysisStatus = result.analysisStatus || "ready";
+
   placeholderText.classList.add("hidden");
   resultWrap.classList.remove("hidden");
 
-  const data = payload.result || {};
-  const missingData = Array.isArray(data.missingData) ? data.missingData : [];
+  document.getElementById("verdict-text").textContent = result.verdict || "Analysis result";
+  document.getElementById("summary-text").textContent =
+    analysisStatus === "unavailable"
+      ? "The AI appraisal did not complete reliably. Use the manual verification guidance below."
+      : result.nextAction || "Review the supporting evidence and decide on the next move.";
 
-  document.getElementById("verdict-text").textContent = data.verdict || "Analysis Result";
+  const recommendedAction = document.getElementById("recommended-action");
+  recommendedAction.textContent = result.recommendedAction || "Verify";
+  recommendedAction.className = getActionClass(result.recommendedAction || "Verify");
+
   const riskPill = document.getElementById("risk-pill");
-  riskPill.textContent = (data.riskLevel || "unknown").toUpperCase();
-  riskPill.className = `risk-label ${getRiskClass(data.riskLevel)}`;
+  riskPill.textContent = formatTitle(result.riskLevel || "medium");
+  riskPill.className = `risk-label ${getRiskClass(result.riskLevel)}`;
 
-  document.getElementById("reason-text").textContent = data.reason || "No detailed reasoning provided.";
-  document.getElementById("action-text").textContent = data.nextAction || "No specific recommendation provided.";
+  document.getElementById("risk-score").textContent = `${Number(result.riskScore || 0)} / 100`;
+  document.getElementById("confidence-score").textContent = `${Number(result.confidence || 0)}%`;
+  document.getElementById("price-fairness").textContent = formatTitle(riskDimensions.priceFairness || "unknown");
+  document.getElementById("fraud-risk").textContent = formatTitle(riskDimensions.fraudRisk || "unknown");
+  document.getElementById("condition-risk").textContent = formatTitle(riskDimensions.conditionRisk || "unknown");
+  document.getElementById("analysis-status").textContent = formatTitle(analysisStatus);
 
-  const messageWrap = document.getElementById("message-wrap");
-  if (data.suggestedMessage) {
-    messageWrap.classList.remove("hidden");
-    document.getElementById("suggested-message").textContent = data.suggestedMessage;
-  } else {
-    messageWrap.classList.add("hidden");
-  }
+  document.getElementById("reason-text").textContent = result.reason || "No detailed reasoning provided.";
+  resetList(document.getElementById("why-list"), result.whyThisVerdict);
+  resetList(document.getElementById("missing-list"), result.missingEvidence, document.getElementById("missing-empty"));
+  resetList(document.getElementById("verify-list"), result.whatToVerify);
+  resetList(document.getElementById("seller-questions"), result.sellerQuestions);
 
-  const missingWrap = document.getElementById("missing-wrap");
-  const missingList = document.getElementById("missing-list");
-  missingList.innerHTML = "";
-  if (missingData.length) {
-    missingWrap.classList.remove("hidden");
-    missingData.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = item;
-      missingList.appendChild(li);
-    });
-  } else {
-    missingWrap.classList.add("hidden");
-  }
+  document.getElementById("suggested-message").textContent =
+    result.suggestedMessage || "Ask for the missing proof points before sending money.";
 
+  document.getElementById("parse-status").textContent = formatTitle(payload.parseStatus || "unknown");
   document.getElementById("latency-val").textContent = payload.latencyMs ? `${payload.latencyMs} ms` : "-";
-  document.getElementById("cost-val").textContent = payload.estimatedCost !== null && payload.estimatedCost !== undefined
-    ? `$${Number(payload.estimatedCost).toFixed(6)}`
-    : "-";
-  
-  // Smooth scroll to result on mobile
-  if (window.innerWidth < 800) {
-    resultWrap.scrollIntoView({ behavior: 'smooth' });
+  document.getElementById("cost-val").textContent =
+    payload.estimatedCost !== null && payload.estimatedCost !== undefined
+      ? `$${Number(payload.estimatedCost).toFixed(6)}`
+      : "-";
+  document.getElementById("log-status").textContent = payload.logSaved ? "Saved" : (payload.logMessage || "Not saved");
+  document.getElementById("raw-response").textContent = payload.rawModelResponse || "No raw response stored.";
+
+  const failureReasonNode = document.getElementById("failure-reason");
+  if (payload.failureReason) {
+    failureReasonNode.textContent = `Failure reason: ${payload.failureReason}`;
+    failureReasonNode.classList.remove("hidden");
+  } else {
+    failureReasonNode.textContent = "";
+    failureReasonNode.classList.add("hidden");
   }
+
+  if (window.innerWidth < 900) {
+    resultWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+async function buildPayload() {
+  const images = await collectImages(document.getElementById("image-upload").files);
+  return {
+    deviceName: document.getElementById("device-name").value.trim(),
+    askingPrice: Number(document.getElementById("asking-price").value),
+    description: document.getElementById("description").value.trim(),
+    batteryHealth: document.getElementById("battery-health").value.trim() || null,
+    imeiStatus: document.getElementById("imei-status").value || null,
+    languageHint: document.getElementById("language-hint").value || null,
+    images
+  };
 }
 
 let isSubmitting = false;
@@ -144,42 +206,43 @@ form.addEventListener("submit", async (event) => {
   try {
     isSubmitting = true;
     document.body.classList.add("is-analyzing");
-    const submitBtn = document.getElementById("submit-btn");
-    submitBtn.disabled = true;
-    setStatus("Scanning device context...");
+    submitButton.disabled = true;
+    setStatus("Preparing your appraisal payload...");
 
-    const images = await collectImages(document.getElementById("image-upload").files);
-    
-    const payload = {
-      deviceName: document.getElementById("device-name").value.trim(),
-      askingPrice: Number(document.getElementById("asking-price").value),
-      description: document.getElementById("description").value.trim(),
-      batteryHealth: document.getElementById("battery-health").value.trim() || null,
-      imeiStatus: document.getElementById("imei-status").value || null,
-      languageHint: document.getElementById("language-hint").value || null,
-      images
-    };
-
-    setStatus("Appraising via Digital Bodyguard...");
+    const payload = await buildPayload();
+    setStatus("Running DeviceGuard trust checks...");
 
     const response = await fetch("/api/analyze", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(payload)
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Analysis failed");
+    if (!response.ok) {
+      throw new Error(data.error || "Analysis failed.");
+    }
 
     renderResult(data);
-    setStatus("Analysis captured successfully.", "good");
+    setStatus(
+      data.result?.analysisStatus === "unavailable"
+        ? "Analysis engine was unavailable. Manual verification guidance is shown below."
+        : "Appraisal complete.",
+      data.result?.analysisStatus === "unavailable" ? "warn" : "good"
+    );
   } catch (error) {
-    console.error(error);
-    setStatus(error.message || "An unexpected error occurred.", "bad");
+    setStatus(error.message || "Something went wrong.", "bad");
   } finally {
     isSubmitting = false;
     document.body.classList.remove("is-analyzing");
-    const submitBtn = document.getElementById("submit-btn");
-    if (submitBtn) submitBtn.disabled = false;
+    submitButton.disabled = false;
   }
+});
+
+resetButton.addEventListener("click", () => {
+  placeholderText.classList.remove("hidden");
+  resultWrap.classList.add("hidden");
+  setStatus("");
 });
