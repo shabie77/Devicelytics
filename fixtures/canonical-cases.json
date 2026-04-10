@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Low-price good deal",
+    "input": {
+      "deviceName": "iPhone 13 128GB",
+      "askingPrice": 26000,
+      "description": "Normal usage. No display issue. Camera ok. Box available.",
+      "batteryHealth": "87%",
+      "imeiStatus": "clean",
+      "languageHint": "english"
+    }
+  },
+  {
+    "name": "Overpriced weak device",
+    "input": {
+      "deviceName": "Redmi Note 10",
+      "askingPrice": 17000,
+      "description": "Back panel changed. Battery drains fast. No bill.",
+      "batteryHealth": "unknown",
+      "imeiStatus": "clean",
+      "languageHint": "english"
+    }
+  },
+  {
+    "name": "Risky listing with missing signals",
+    "input": {
+      "deviceName": "Samsung Galaxy S21 FE",
+      "askingPrice": 22000,
+      "description": "Condition good. Serious buyers only.",
+      "batteryHealth": "",
+      "imeiStatus": "",
+      "languageHint": "mixed"
+    }
+  },
+  {
+    "name": "Manglish listing",
+    "input": {
+      "deviceName": "OnePlus 11R",
+      "askingPrice": 25000,
+      "description": "Phone nalla condition aanu. Gaming ok. Battery backup decent aanu.",
+      "batteryHealth": "good",
+      "imeiStatus": "clean",
+      "languageHint": "manglish"
+    }
+  },
+  {
+    "name": "Blacklisted IMEI",
+    "input": {
+      "deviceName": "iPhone 12 mini",
+      "askingPrice": 21000,
+      "description": "Looks clean but seller says IMEI issue can be fixed later.",
+      "batteryHealth": "82%",
+      "imeiStatus": "blacklisted",
+      "languageHint": "english"
+    }
+  }
+]

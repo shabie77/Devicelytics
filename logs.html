@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeviceGuard QA Logs</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <h1>QA Log Viewer</h1>
+      <p class="lead">
+        Internal-only prototype log view for checking parse status, latency, raw model output, and saved result structure during private testing.
+      </p>
+      <div class="actions">
+        <a class="link-button secondary" href="/index.html">Back to analysis</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="actions">
+        <button id="refresh" class="primary" type="button">Refresh Logs</button>
+      </div>
+      <div id="status" class="status"></div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Device</th>
+              <th>Parse</th>
+              <th>Latency</th>
+              <th>Cost</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody id="log-table-body"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Selected raw response</h2>
+        <pre id="raw-output">Select a row after loading logs.</pre>
+      </div>
+    </section>
+  </main>
+
+  <script src="/logs.js"></script>
+</body>
+</html>

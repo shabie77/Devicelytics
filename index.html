@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeviceGuard Prototype</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <h1>DeviceGuard Prototype</h1>
+      <p class="lead">
+        A near-zero-cost private testing prototype for used-device analysis. This version is focused on fast validation:
+        collect device details, optionally inspect up to three images, generate a structured verdict, and log the run for QA review.
+      </p>
+      <div class="pill-row">
+        <span class="pill">Prototype scope only</span>
+        <span class="pill">No payments</span>
+        <span class="pill">Manual IMEI guidance</span>
+        <span class="pill">Gemini with safe fallback</span>
+      </div>
+    </section>
+
+    <section class="panel grid two">
+      <form id="analysis-form" class="card">
+        <h2>Run Analysis</h2>
+
+        <div class="field">
+          <label for="deviceName">Brand / model</label>
+          <input id="deviceName" name="deviceName" required placeholder="Example: iPhone 13 128GB">
+        </div>
+
+        <div class="field">
+          <label for="askingPrice">Asking price</label>
+          <input id="askingPrice" name="askingPrice" type="number" min="0" required placeholder="Example: 26000">
+        </div>
+
+        <div class="field">
+          <label for="description">Usage notes / seller description</label>
+          <textarea id="description" name="description" required placeholder="Mention condition, usage, repairs, battery, included accessories, and anything the seller says."></textarea>
+        </div>
+
+        <div class="field">
+          <label for="batteryHealth">Battery health (optional)</label>
+          <input id="batteryHealth" name="batteryHealth" placeholder="Example: 86% or 'unknown'">
+        </div>
+
+        <div class="field">
+          <label for="imeiStatus">IMEI status (optional)</label>
+          <select id="imeiStatus" name="imeiStatus">
+            <option value="">Not checked</option>
+            <option value="clean">Clean</option>
+            <option value="blacklisted">Blacklisted</option>
+            <option value="missing">IMEI unavailable</option>
+            <option value="unverifiable">Unverifiable</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="languageHint">Language hint (optional)</label>
+          <select id="languageHint" name="languageHint">
+            <option value="">Auto detect</option>
+            <option value="english">English</option>
+            <option value="malayalam">Malayalam</option>
+            <option value="manglish">Manglish</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="images">Optional images (1-3)</label>
+          <input id="images" name="images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+          <div class="helper">Large photos are automatically compressed before upload. Keep it to 1-3 clear images.</div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="primary">Analyze Device</button>
+          <a class="link-button secondary" href="/logs.html">Open QA Logs</a>
+        </div>
+        <div id="status" class="status"></div>
+      </form>
+
+      <section class="card">
+        <h2>Result</h2>
+        <div id="empty-state">
+          <p class="small">Run an analysis to see the verdict, guidance, and QA metadata here.</p>
+        </div>
+        <div id="result-panel" class="hidden">
+          <p id="verdict" class="verdict"></p>
+          <p><strong>Reason:</strong> <span id="reason"></span></p>
+          <p><strong>What to do:</strong> <span id="nextAction"></span></p>
+          <p><strong>Suggested message:</strong> <span id="suggestedMessage"></span></p>
+          <div id="missing-wrap" class="hidden">
+            <p><strong>Missing data to verify:</strong></p>
+            <ul id="missingData"></ul>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h3>Risk level</h3>
+              <p id="riskLevel"></p>
+            </div>
+            <div class="card">
+              <h3>QA status</h3>
+              <p id="parseStatus"></p>
+              <p id="latency" class="small"></p>
+              <p id="cost" class="small"></p>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Raw model response</h3>
+            <pre id="rawResponse"></pre>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
