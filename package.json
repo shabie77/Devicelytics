@@ -5,6 +5,10 @@
   "description": "Near-zero DeviceGuard prototype for private testing on Vercel",
   "scripts": {
     "start": "npx serve .",
-    "dev": "npx serve ."
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "engines": {
+    "node": "22.x"
   }
 }
