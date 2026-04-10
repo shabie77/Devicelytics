@@ -1,28 +1,18 @@
 const form = document.getElementById("analysis-form");
 const statusNode = document.getElementById("status");
-const resultPanel = document.getElementById("result-panel");
-const emptyState = document.getElementById("empty-state");
+const resultWrap = document.getElementById("result-wrap");
+const placeholderText = document.getElementById("placeholder-text");
 
 function setStatus(message, tone = "info") {
   statusNode.textContent = message;
   statusNode.className = `status ${tone}`;
 }
 
-function verdictClass(verdict) {
-  const normalized = (verdict || "").toLowerCase();
-  if (normalized.includes("need more details")) {
-    return "warn";
-  }
-  if (normalized.includes("high risk") || normalized.includes("not worth it")) {
-    return "bad";
-  }
-  if (normalized.includes("worth")) {
-    return "good";
-  }
-  if (normalized.includes("average")) {
-    return "warn";
-  }
-  return "info";
+function getRiskClass(level) {
+  const norm = (level || "").toLowerCase();
+  if (norm.includes("high")) return "risk-high";
+  if (norm.includes("medium")) return "risk-medium";
+  return "risk-low";
 }
 
 function readFile(file) {
@@ -76,13 +66,14 @@ async function readFileAsInlinePart(file) {
 }
 
 async function collectImages(files) {
-  const picked = Array.from(files || []).slice(0, 3);
+  if (!files || !files.length) return [];
+  const picked = Array.from(files).slice(0, 3);
   const rawSizeLimit = 10 * 1024 * 1024;
   const encodedPayloadLimit = 3.2 * 1024 * 1024;
 
   for (const file of picked) {
     if (file.size > rawSizeLimit) {
-      throw new Error(`${file.name} is larger than the 10MB prototype limit.`);
+      throw new Error(`${file.name} is larger than the 10MB limit.`);
     }
   }
 
@@ -97,32 +88,34 @@ async function collectImages(files) {
 }
 
 function renderResult(payload) {
-  emptyState.classList.add("hidden");
-  resultPanel.classList.remove("hidden");
+  placeholderText.classList.add("hidden");
+  resultWrap.classList.remove("hidden");
 
-  const result = payload.result || {};
-  const missingData = Array.isArray(result.missingData) ? result.missingData : [];
+  const data = payload.result || {};
+  const missingData = Array.isArray(data.missingData) ? data.missingData : [];
 
-  document.getElementById("verdict").textContent = result.verdict || "Need more details";
-  document.getElementById("verdict").className = `verdict ${verdictClass(result.verdict)}`;
-  document.getElementById("reason").textContent = result.reason || "The response did not meet the expected format.";
-  document.getElementById("nextAction").textContent = result.nextAction || "Retry with clearer details and at least one photo.";
-  document.getElementById("suggestedMessage").textContent = result.suggestedMessage || "Share more details or ask the seller for clearer proof.";
-  document.getElementById("riskLevel").textContent = result.riskLevel || "unknown";
-  document.getElementById("parseStatus").textContent = payload.parseStatus || "unknown";
-  document.getElementById("latency").textContent = payload.latencyMs ? `Latency: ${payload.latencyMs} ms` : "Latency not available";
-  document.getElementById("cost").textContent = payload.estimatedCost !== null && payload.estimatedCost !== undefined
-    ? `Estimated cost: $${Number(payload.estimatedCost).toFixed(6)}`
-    : "Estimated cost unavailable";
-  document.getElementById("rawResponse").textContent = payload.rawModelResponse || "No raw model response stored.";
+  document.getElementById("verdict-text").textContent = data.verdict || "Analysis Result";
+  const riskPill = document.getElementById("risk-pill");
+  riskPill.textContent = (data.riskLevel || "unknown").toUpperCase();
+  riskPill.className = `risk-label ${getRiskClass(data.riskLevel)}`;
+
+  document.getElementById("reason-text").textContent = data.reason || "No detailed reasoning provided.";
+  document.getElementById("action-text").textContent = data.nextAction || "No specific recommendation provided.";
+
+  const messageWrap = document.getElementById("message-wrap");
+  if (data.suggestedMessage) {
+    messageWrap.classList.remove("hidden");
+    document.getElementById("suggested-message").textContent = data.suggestedMessage;
+  } else {
+    messageWrap.classList.add("hidden");
+  }
 
   const missingWrap = document.getElementById("missing-wrap");
-  const missingList = document.getElementById("missingData");
+  const missingList = document.getElementById("missing-list");
   missingList.innerHTML = "";
-
   if (missingData.length) {
     missingWrap.classList.remove("hidden");
-    missingData.forEach((item) => {
+    missingData.forEach(item => {
       const li = document.createElement("li");
       li.textContent = item;
       missingList.appendChild(li);
@@ -130,58 +123,63 @@ function renderResult(payload) {
   } else {
     missingWrap.classList.add("hidden");
   }
+
+  document.getElementById("latency-val").textContent = payload.latencyMs ? `${payload.latencyMs} ms` : "-";
+  document.getElementById("cost-val").textContent = payload.estimatedCost !== null && payload.estimatedCost !== undefined
+    ? `$${Number(payload.estimatedCost).toFixed(6)}`
+    : "-";
+  
+  // Smooth scroll to result on mobile
+  if (window.innerWidth < 800) {
+    resultWrap.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
 let isSubmitting = false;
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  
   if (isSubmitting) return;
-  isSubmitting = true;
-
-  setStatus("Preparing request...");
-  
-  const submitBtn = form.querySelector('button[type="submit"]');
-  if (submitBtn) submitBtn.disabled = true;
 
   try {
-    const formData = new FormData(form);
-    const images = await collectImages(document.getElementById("images").files);
+    isSubmitting = true;
+    document.body.classList.add("is-analyzing");
+    const submitBtn = document.getElementById("submit-btn");
+    submitBtn.disabled = true;
+    setStatus("Scanning device context...");
 
+    const images = await collectImages(document.getElementById("image-upload").files);
+    
     const payload = {
-      deviceName: String(formData.get("deviceName") || "").trim(),
-      askingPrice: Number(formData.get("askingPrice") || 0),
-      description: String(formData.get("description") || "").trim(),
-      batteryHealth: String(formData.get("batteryHealth") || "").trim() || null,
-      imeiStatus: String(formData.get("imeiStatus") || "").trim() || null,
-      languageHint: String(formData.get("languageHint") || "").trim() || null,
+      deviceName: document.getElementById("device-name").value.trim(),
+      askingPrice: Number(document.getElementById("asking-price").value),
+      description: document.getElementById("description").value.trim(),
+      batteryHealth: document.getElementById("battery-health").value.trim() || null,
+      imeiStatus: document.getElementById("imei-status").value || null,
+      languageHint: document.getElementById("language-hint").value || null,
       images
     };
 
-    setStatus("Running analysis...");
+    setStatus("Appraising via Digital Bodyguard...");
 
     const response = await fetch("/api/analyze", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Analysis failed");
-    }
+    if (!response.ok) throw new Error(data.error || "Analysis failed");
 
     renderResult(data);
-    setStatus("Analysis complete.", "good");
+    setStatus("Analysis captured successfully.", "good");
   } catch (error) {
-    setStatus(error.message || "Something went wrong.", "bad");
+    console.error(error);
+    setStatus(error.message || "An unexpected error occurred.", "bad");
   } finally {
-    const submitBtn = form.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = false;
     isSubmitting = false;
+    document.body.classList.remove("is-analyzing");
+    const submitBtn = document.getElementById("submit-btn");
+    if (submitBtn) submitBtn.disabled = false;
   }
 });

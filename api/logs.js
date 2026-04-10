@@ -10,10 +10,10 @@ module.exports = async (req, res) => {
     return jsonResponse(res, 405, { error: "Method not allowed." });
   }
 
-  const token = req.headers.authorization || req.query.token;
+  const token = req.headers.authorization;
   const expectedToken = process.env.QA_PASSWORD;
   if (!expectedToken || token !== expectedToken) {
-    return jsonResponse(res, 401, { error: "Unauthorized. Valid token required." });
+    return jsonResponse(res, 401, { error: "Unauthorized. Valid token required in Authorization header." });
   }
 
   const url = process.env.SUPABASE_URL;

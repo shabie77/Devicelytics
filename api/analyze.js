@@ -98,13 +98,13 @@ function buildSystemInstruction() {
     parts: [
       {
         text: [
-          "You are DeviceGuard, an AI decision engine for used-device buying.",
-          "Return JSON only. No markdown. No explanation outside the JSON.",
-          "Do not predict exact market price.",
-          "Use these exact keys: verdict, reason, nextAction, suggestedMessage, missingData, riskLevel.",
-          "Allowed verdict styles include: Worth It, Average Deal, Not Worth It, High Risk, Need More Details.",
-          "Allowed risk levels are: low, medium, high.",
-          "The response should help the buyer decide whether to buy, negotiate, verify, or walk away."
+          "You are 'The Digital Bodyguard,' a veteran technical appraiser specializing in detecting fraud and hidden defects in used consumer electronics (especially Apple and high-end Android devices).",
+          "Objective: Protect the user from making a bad purchase. Be detailed, skeptical, and focused on verifying condition and price logic.",
+          "Market Logic: Evaluate the 'Asking price' against a typical 15-30% yearly depreciation for flagships. If a price is too low, treat it as a potential scam (bait-and-switch or stolen device). If a model is very new (like iPhone 16/17 series), assume it is a flagship flagship release and focus on assessing the seller's legitimacy and 'too good to be true' pricing.",
+          "Image Analysis: If images are provided, look for cracks, mismatched buttons, or inconsistent colors. If no images are provided, explicitly mention the high risk of mystery defects.",
+          "Return JSON only. No markdown formatting. Keys: verdict, reason (multi-paragraph detail), nextAction, suggestedMessage, missingData, riskLevel.",
+          "Verdict styles: Worth It, Average Deal, Not Worth It, High Risk, Need More Details.",
+          "Risk levels: low, medium, high."
         ].join("\n")
       }
     ]
@@ -216,8 +216,15 @@ async function saveLog(record) {
 }
 
 async function callGemini(input) {
-  if (String(process.env.USE_MOCK_GEMINI || "true").toLowerCase() === "true" || !process.env.GEMINI_API_KEY) {
+  const isMock = String(process.env.USE_MOCK_GEMINI || "false").toLowerCase() === "true";
+  const hasKey = !!process.env.GEMINI_API_KEY;
+
+  if (isMock) {
     return buildMockGeminiResponse(input);
+  }
+
+  if (!hasKey) {
+    throw new Error("Gemini API key is not configured. Real analysis is currently disabled.");
   }
 
   const response = await fetch(
@@ -276,8 +283,22 @@ module.exports = async (req, res) => {
     return badRequest(res, "askingPrice must be a valid positive number.");
   }
 
-  if (Array.isArray(input.images) && input.images.length > 3) {
-    return badRequest(res, "Only up to 3 images are supported.");
+  if (Array.isArray(input.images)) {
+    if (input.images.length > 3) {
+      return badRequest(res, "Only up to 3 images are supported.");
+    }
+    const validMimes = ["image/jpeg", "image/png", "image/webp"];
+    for (const img of input.images) {
+      if (!img.data || typeof img.data !== "string" || !img.mimeType) {
+        return badRequest(res, "Invalid image payload structure.");
+      }
+      if (!validMimes.includes(img.mimeType)) {
+        return badRequest(res, `Unsupported image type: ${img.mimeType}. Only JPG, PNG, and WEBP allowed.`);
+      }
+      if (img.data.length > 2.5 * 1024 * 1024) { // ~2.5MB base64 cap
+        return badRequest(res, "Image payload too large. Server-side guard exceeded.");
+      }
+    }
   }
 
   const normalizedInput = {
@@ -326,7 +347,16 @@ module.exports = async (req, res) => {
     estimated_cost: estimatedCost
   };
 
-  const logResult = await saveLog(logRecord);
+  let logSaved = false;
+  let logMessage = null;
+  try {
+    const logResult = await saveLog(logRecord);
+    logSaved = logResult.saved;
+    logMessage = logResult.reason;
+  } catch (logErr) {
+    logSaved = false;
+    logMessage = "Logging error: " + (logErr.message || "Unknown log failure");
+  }
 
   return jsonResponse(res, 200, {
     result,
@@ -335,7 +365,7 @@ module.exports = async (req, res) => {
     modelVersion: DEFAULT_MODEL,
     latencyMs,
     estimatedCost,
-    logSaved: logResult.saved,
-    logMessage: logResult.reason || null
+    logSaved,
+    logMessage
   });
 };
