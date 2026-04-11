@@ -75,7 +75,7 @@ async function loadLogs() {
 
     const response = await fetch("/api/logs", {
       headers: {
-        Authorization: qaToken || ""
+        "X-QA-Token": (qaToken || "").trim()
       }
     });
     const payload = await response.json();

@@ -10,10 +10,14 @@ module.exports = async (req, res) => {
     return jsonResponse(res, 405, { error: "Method not allowed." });
   }
 
-  const token = req.headers.authorization;
-  const expectedToken = process.env.QA_PASSWORD;
+  const token = (req.headers.authorization || req.headers["x-qa-token"] || "").trim();
+  const expectedToken = (process.env.QA_PASSWORD || "").trim();
+
   if (!expectedToken || token !== expectedToken) {
-    return jsonResponse(res, 401, { error: "Unauthorized. Valid token required in Authorization header." });
+    return jsonResponse(res, 401, { 
+      error: "Unauthorized. Password mismatch.",
+      receivedPrefix: token ? token.substring(0, 2) + "..." : "none" 
+    });
   }
 
   const url = process.env.SUPABASE_URL;
