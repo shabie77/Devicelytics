@@ -10,13 +10,13 @@ module.exports = async (req, res) => {
     return jsonResponse(res, 405, { error: "Method not allowed." });
   }
 
-  const token = (req.headers.authorization || req.headers["x-qa-token"] || "").trim();
-  const expectedToken = (process.env.QA_PASSWORD || "").trim();
+  const token = (req.headers.authorization || req.headers["x-qa-token"] || "").trim().toLowerCase();
+  const expectedToken = (process.env.QA_PASSWORD || "").trim().toLowerCase();
 
   if (!expectedToken || token !== expectedToken) {
     return jsonResponse(res, 401, { 
-      error: "Unauthorized. Password mismatch.",
-      receivedPrefix: token ? token.substring(0, 2) + "..." : "none" 
+      error: `Password mismatch (Expected length: ${expectedToken.length}, Received: ${token.length})`,
+      received: token ? token.substring(0, 2) + "..." : "none" 
     });
   }
 

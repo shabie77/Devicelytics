@@ -85,7 +85,8 @@ async function loadLogs() {
     }
 
     if (!response.ok) {
-      throw new Error(payload.error || "Could not load logs.");
+      const diag = payload.received ? ` (Got: ${payload.received})` : "";
+      throw new Error((payload.error || "Could not load logs.") + diag);
     }
 
     const rows = payload.logs || [];
