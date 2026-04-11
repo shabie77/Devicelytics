@@ -11,7 +11,12 @@ module.exports = async (req, res) => {
   }
 
   const token = (req.headers.authorization || req.headers["x-qa-token"] || "").trim().toLowerCase();
-  const expectedToken = (process.env.QA_PASSWORD || "").trim().toLowerCase();
+  const expectedToken = (
+    process.env.QA_PASSWORD || 
+    process.env.QA_PASS || 
+    process.env.QA_TOKEN || 
+    ""
+  ).trim().toLowerCase();
 
   if (!expectedToken || token !== expectedToken) {
     return jsonResponse(res, 401, { 
