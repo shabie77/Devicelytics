@@ -78,7 +78,7 @@ async function readFileAsInlinePart(file) {
 
   const dataUrl = await readFile(file);
   const image = await loadImage(dataUrl);
-  const maxDimension = 1024;
+  const maxDimension = 900;
   const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
   const width = Math.max(1, Math.round(image.width * scale));
   const height = Math.max(1, Math.round(image.height * scale));
@@ -92,7 +92,7 @@ async function readFileAsInlinePart(file) {
   }
 
   context.drawImage(image, 0, 0, width, height);
-  const compressed = canvas.toDataURL("image/jpeg", 0.65);
+  const compressed = canvas.toDataURL("image/jpeg", 0.55);
   const [, base64] = compressed.split(",");
 
   return {

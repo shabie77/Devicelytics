@@ -608,8 +608,8 @@ tbody tr:hover {
 
 @media (max-width: 760px) {
   .shell {
-    width: min(100% - 20px, 100%);
-    padding: 20px 0 36px;
+    width: min(100% - 12px, 100%);
+    padding: 12px 0 80px;
   }
 
   .panel,
@@ -619,9 +619,14 @@ tbody tr:hover {
   .empty-state,
   .scoreboard,
   .log-detail {
-    padding: 18px;
-    border-radius: 20px;
+    padding: 14px;
+    border-radius: 16px;
   }
+
+  .hero h1 { font-size: 1.4rem; }
+  .hero p { font-size: 0.85rem; }
+
+  .decision-card h2 { font-size: 1.25rem; }
 
   .form-grid,
   .detail-section,
@@ -631,10 +636,54 @@ tbody tr:hover {
   .scoreboard-grid,
   .qa-summary-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .score-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dimension-grid {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
   .panel-head,
   .decision-topline {
     flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-card h3 { font-size: 1rem; }
+  .detail-card ul { padding-left: 16px; }
+  .detail-card li { font-size: 0.88rem; line-height: 1.45; }
+
+  .score-tile {
+    padding: 12px;
+  }
+
+  .score-tile .label { font-size: 0.7rem; }
+  .score-tile .value { font-size: 1.1rem; }
+
+  .suggested-message-card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    border-radius: 16px 16px 0 0;
+    padding: 14px 18px;
+    background: rgba(15, 23, 42, 0.97);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(52, 211, 153, 0.25);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .meta-grid .score-tile {
+    padding: 10px;
+  }
+
+  button, .primary, .ghost {
+    padding: 12px 18px;
+    font-size: 0.9rem;
   }
 }
