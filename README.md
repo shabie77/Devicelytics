@@ -1,51 +1,55 @@
-# DeviceGuard Prototype
+# 📱 Devicelytics – Secondary Market Device Valuation Engine
 
-This is a low-cost, testing-first prototype scaffold for DeviceGuard.
+A deterministic valuation and decision-support web application engineered to resolve price asymmetry in the secondary consumer electronics market by calculating fair market values based on hardware degradation, cosmetic condition, and lifecycle depreciation models.
 
-## What is included
+🔗 **Live Application:** (https://devicelytics.vercel.app/)
 
-- Static frontend for submitting a device analysis request
-- Optional 1-3 image input encoded client-side as base64
-- Vercel serverless API endpoint for Gemini analysis
-- Strict JSON parsing with safe fallback behavior
-- Optional Supabase logging for internal test review
-- Simple internal log viewer at `/logs.html`
-- Canonical test fixtures in `fixtures/canonical-cases.json`
+---
 
-## Stack choices
+## 📌 Problem Context & Objectives
 
-- Frontend: plain HTML/CSS/JS to keep complexity and cost low
-- Backend: Vercel Node serverless functions
-- AI: Gemini REST API
-- Logging: Supabase REST API
+The pre-owned smartphone and laptop secondary markets suffer from severe information asymmetry and arbitrary peer-to-peer pricing. Buyers and sellers lack standardized, objective benchmarks to quantify how physical wear, battery cycle degradation, functional hardware defects, and brand depreciation curves impact an asset's real residual value.
 
-## Recommended setup order
+* **Algorithmic Price Standardization:** Replace subjective resale estimates with an objective, multi-factor depreciation engine.
+* **Granular Component Auditing:** Assess individual hardware subsystems (battery health, display panels, logic boards, chassis condition) to compute fair deductions.
+* **Instant Decision Support:** Provide actionable pricing corridors (Buyer Maximum / Seller Minimum) to facilitate fair transactions.
+* **Accessible Web Interface:** Deliver a fast, responsive user interface deployed on modern cloud infrastructure.
 
-1. Install Node.js 20+ locally.
-2. Copy `.env.example` to `.env.local`.
-3. Start with `USE_MOCK_GEMINI=true`.
-4. Open `index.html` with a local server or deploy to Vercel.
-5. Once the UI and parser are stable, add your real Gemini key and set `USE_MOCK_GEMINI=false`.
-6. Add Supabase env vars after the analysis flow is working.
+---
 
-## Supabase table
+## 🛠️ Technical Stack & Architecture
 
-Create a table called `analysis_logs` with columns similar to:
+* **Framework & Frontend:** Next.js, React, Tailwind CSS
+* **Language:** TypeScript / JavaScript
+* **Valuation Engine:** Deterministic rule-based pricing models & decay curve algorithms
+* **Hosting & Deployment:** Vercel
 
-- `id` uuid primary key default gen_random_uuid()
-- `created_at` timestamptz default now()
-- `input` jsonb not null
-- `raw_model_response` text
-- `parsed_result` jsonb
-- `parse_status` text not null
-- `model_version` text
-- `latency_ms` int
-- `estimated_cost` numeric
+---
 
-## Prototype testing workflow
+## ⚙️ Analytical Architecture & Valuation Logic
 
-1. Run with mocked Gemini responses first.
-2. Validate the result page and fallback behavior.
-3. Use the canonical cases in `fixtures/canonical-cases.json`.
-4. Turn on real Gemini only after the parser and UI are stable.
-5. Review logs in `/logs.html` during private testing.
+Devicelytics calculates the estimated residual value ($V_{\text{residual}}$) by applying sequential categorical penalties against an asset's baseline market retail anchor:
+
+$$V_{\text{residual}} = V_{\text{base}} \times (1 - D_{\text{age}}) \times \prod (1 - P_{\text{condition}}) - \sum C_{\text{repairs}}$$
+
+### Core Valuation Factors
+
+1. **Lifecycle & Market Age Decay ($D_{\text{age}}$):**
+   * Computes base depreciation curves anchored to release cycle benchmarks, operating system support status, and brand-specific resale retention rates.
+
+2. **Component Degradation & Cosmetic Penalties ($P_{\text{condition}}$):**
+   * **Battery Health & Charge Cycles:** Scaled deductions applied when battery capacity drops below critical health thresholds (<85%, <80%).
+   * **Display Integrity:** Differentiates between minor surface micro-abrasions, deep scratches, dead pixels, and non-OEM display replacements.
+   * **Chassis & Body Condition:** Tiered deductions for minor scuffs, frame dents, or structural chassis bending.
+
+3. **Critical Defect Deductions ($\sum C_{\text{repairs}}$):**
+   * Direct estimated repair-cost adjustments applied for functional failures (e.g., failed Face ID/Touch ID sensors, damaged camera modules, non-functional ports, speaker distortion).
+
+---
+
+## 🚀 Key Application Features
+
+* **Dynamic Multi-Step Diagnostic Flow:** Guided questionnaire capturing brand, model, storage variant, physical state, and functional integrity.
+* **Real-Time Fair Value Range:** Instantly generates a realistic price range reflecting both a competitive buyer purchase target and a reasonable seller listing floor.
+* **Deduction Transparency:** Breaks down the specific percentage and monetary impact attributable to individual defects or wear items.
+* **Mobile-First Responsive Layout:** Designed for quick evaluations directly on smartphones during in-person peer-to-peer transactions.
